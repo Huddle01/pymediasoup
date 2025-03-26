@@ -7,6 +7,7 @@ from .errors import InvalidStateError
 from .emitter import EnhancedEventEmitter
 from .rtp_parameters import MediaKind, RtpParameters
 
+from pymediasoup.types.webrtc import MediaStreamTrackKind
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,8 @@ class Consumer(EnhancedEventEmitter):
         self._rtpReceiver = rtpReceiver
         self._appData = appData
 
+        self._disableTrackOnPause = False
+
         self._handleTrack()
 
     # Consumer id.
@@ -72,8 +75,15 @@ class Consumer(EnhancedEventEmitter):
 
     # Media kind.
     @property
-    def kind(self) -> MediaStreamTrack.kind:
-        return self._track.kind
+    def kind(self) -> Optional[MediaStreamTrackKind]:
+        kind = self._track.kind
+
+        if kind.lower() == "audio":
+            return MediaStreamTrackKind.Audio
+        elif kind.lower() == "video":
+            return MediaStreamTrackKind.Video
+
+        return None
 
     # Associated RTCRtpReceiver.
     @property
